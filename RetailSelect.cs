@@ -6,56 +6,69 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CascadeDemo
 {
-    public class LogisticSearchRequest
-    {
-        public string MessageId { get; set; }
-        public string TransactionId { get; set; }
-        public string Data { get; set; }
-    }
     public static class RetailSelect
     {
         [FunctionName("SelectOrchestrator")]
         public static async Task<List<string>> RunOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context, ILogger log)
         {
+            var logger = context.CreateReplaySafeLogger(log);
             var outputs = new List<string>();
 
-            // Replace "hello" with the name of your Durable Activity Function.
-            var logisticRequestIds = await context.CallActivityAsync<LogisticSearchRequest>("BuildLogisticSearchRequest", context.InstanceId);
+            var logisticRequest = await context.CallActivityAsync<LogisticSearchRequest>("BuildLogisticSearchRequest", context.InstanceId);
 
-            await context.CallActivityAsync("CallLogisticSearchRequest", logisticRequestIds);
+            await context.CallActivityAsync("CallLogisticSearchRequest", logisticRequest);
             OnSearchRespone bestOnSearchResponse = default;
-            var timer = context.CreateTimer(DateTime.UtcNow.AddSeconds(60), System.Threading.CancellationToken.None);
+
+            var timerCancellationToken = await context.CallActivityAsync<CancellationTokenSource>("GetLogisticSearchTimerCancellationToken", null);
+            var timer = context.CreateTimer(context.CurrentUtcDateTime.AddSeconds(60), timerCancellationToken.Token);
+
             var quoteEvent = context.WaitForExternalEvent<OnSearchRespone>("bestOnSearch");
             await Task.WhenAny(timer, quoteEvent);
 
             if (quoteEvent.IsCompletedSuccessfully)
+            {
                 bestOnSearchResponse = quoteEvent.Result;
-            
-            if (bestOnSearchResponse == null)
-            {
-                log.LogWarning("Timer executed, looking for existing onSearch responses");
-                bestOnSearchResponse ??= Ram.OnSearchResponses[context.InstanceId].OrderBy(x => x.Price).FirstOrDefault();
-            }
-            else
-            {
-                log.LogWarning("Got best provider out of 3");
+                timerCancellationToken.Cancel();
             }
 
             if (bestOnSearchResponse == null)
             {
-                log.LogWarning("No logistic on_search, No retail on_select");
+                logger.LogWarning("Timer executed, looking for existing onSearch responses");
+                bestOnSearchResponse ??= Ram.OnSearchResponses[context.InstanceId].OrderBy(x => x.Price).FirstOrDefault();
             }
             else
             {
-                log.LogWarning($"Best quote is from {bestOnSearchResponse.Provider} for {bestOnSearchResponse.Price}");
-                log.LogWarning($"Preparing retail on_select response");
+                logger.LogWarning("Got best provider out of 3");
+            }
+
+            if (bestOnSearchResponse == null)
+            {
+                logger.LogWarning("No logistic on_search, No retail on_select");
+            }
+            else
+            {
+                await context.CallActivityAsync("DoRetailOnSelect", bestOnSearchResponse);
             }
             return outputs;
+        }
+
+        [FunctionName("DoRetailOnSelect")]
+        public static void DoRetailOnSelect([ActivityTrigger] OnSearchRespone bestOnSearchResponse, ILogger log)
+        {
+            log.LogWarning($"Best quote is from {bestOnSearchResponse.Provider} for {bestOnSearchResponse.Price}");
+            log.LogWarning($"Preparing retail on_select response");
+        }
+
+        [FunctionName("GetLogisticSearchTimerCancellationToken")]
+        public static CancellationTokenSource GetLogisticSearchTimerCancellationToken([ActivityTrigger] string myData)
+        {
+            return new CancellationTokenSource();
         }
 
         [FunctionName("CallLogisticSearchRequest")]
@@ -90,7 +103,7 @@ namespace CascadeDemo
 
             log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
             return starter.CreateCheckStatusResponse(req, instanceId);
-            return new HttpResponseMessage { Content = new StringContent("{\"message\": {\"ack\": {\"status\": \"ACK\"}}") };
+            //return new HttpResponseMessage { Content = new StringContent("{\"message\": {\"ack\": {\"status\": \"ACK\"}}") };
         }
     }
 }
