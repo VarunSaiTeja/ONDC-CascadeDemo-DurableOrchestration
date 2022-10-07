@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32922.545
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CascadeDemo", "CascadeDemo.csproj", "{0D8D54C4-01BE-4A88-8B84-AA0DF7E11C21}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0D8D54C4-01BE-4A88-8B84-AA0DF7E11C21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D8D54C4-01BE-4A88-8B84-AA0DF7E11C21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D8D54C4-01BE-4A88-8B84-AA0DF7E11C21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D8D54C4-01BE-4A88-8B84-AA0DF7E11C21}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B91F5828-8A3C-46A3-B433-7EF074510D00}
+	EndGlobalSection
+EndGlobal
