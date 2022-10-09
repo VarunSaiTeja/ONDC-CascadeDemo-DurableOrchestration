@@ -1,4 +1,4 @@
-# CascadeDemo
+# ONDC Cascaded transaction demo with Azure Durable Orchestration Function
 
 I made a select api as http trigger which invokes select orchestrator function.
 
