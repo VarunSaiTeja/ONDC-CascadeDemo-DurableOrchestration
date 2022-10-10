@@ -3,21 +3,19 @@
 ![image](https://user-images.githubusercontent.com/35555010/194807814-16fb9969-03e5-4403-959a-146d878c1690.png)
 
 
-I made a select api as http trigger which invokes select orchestrator function.
+I made a select API as an HTTP trigger which invokes the select orchestrator function.
 
-The orch function makes logistic search call & waits for completion of any one task below:
-
-1. External event(occurs only once if minimum 3 on_search responses received from  logistic on_search endpoint)
-
+The orch function makes a logistic search call & waits for the completion of any one task below:
+1. External event(occurs only once if a minimum of 3 on_search responses are received from the logistic on_search endpoint)
 2. Timer of 5 sec
 
-The select orch func continues execution if any of above task is completed and cancels/ignores the other task going forward.
+The select orch func continues execution if any of the above tasks are completed and cancels/ignores the other task going forward.
 
-If task 1 completed within 5 sec then the logistic on_search http endpoint will raise an external event with the best quote to select orch func.
+If task 1 is completed within 5 sec then the logistic on_search HTTP endpoint will raise an external event with the best quote to select orch func.
 
 If task 2 gets completed first then it will stop considering further logistic on_search responses.
 
-Finally the select orch func checks for best on_search responses received so far. If there's any logistic on_search response available then the select orch func will make retail on_select response with delivery quote & delivery state serviceable else on_select response without delivery quote & delivery state non-serviceable.
+Finally, the select orch func checks for the best on_search responses received so far. If there's any logistic on_search response available then the select orch func will make retail on_select response with delivery quote & delivery state serviceable else on_select response without delivery quote & delivery state non-serviceable.
 
 
 Make Retail Select API Call
